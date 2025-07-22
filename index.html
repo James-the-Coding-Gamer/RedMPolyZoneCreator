@@ -1,362 +1,586 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>PolyZone Creator</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <style>
-      html,
-      body,
-      #map1 {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        z-index: 1;
-        background-color: #143c6a;
-      }
-      .btn {
-        position: absolute;
-        z-index: 10;
-        border-radius: 3px;
-        padding: 5px 15px;
-        border-color: #202020;
-        background-color: #303030;
-        color: white;
-      }
-      .btn-clear {
-        top: 2px;
-        right: 2px;
-      }
-      .btn-debug {
-        top: 2px;
-        right: 140px;
-      }
-      .btn-overlay {
-        top: 2px;
-        right: 250px;
-      }
-      .btn:hover {
-        cursor: pointer;
-      }
-      .btn:active {
-        background-color: #404040;
-      }
-      .leaflet-grid-label .lng {
-        margin-left: 8px;
-        -webkit-transform: rotate(90deg);
-        transform: rotate(90deg);
-      }
-    </style>
-  </head>
-  <body>
-    <div id="map1"></div>
+<head>
+  <title>PolyZone Creator</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" crossorigin="anonymous"
+    referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <button class="btn btn-clear" onclick="clearLayer();">
-      Clear All Shapes
-    </button>
+  <style>
+    html,
+    body,
+    #map1 {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      z-index: 1;
+      background-color: #143c6a;
+    }
 
-    <button
-      class="btn btn-debug"
-      onclick="debug = !debug;this.style.backgroundColor = debug ? '#40aa40' : '#303030';"
-    >
-      Debug Grid
-    </button>
+    .btn {
+      position: absolute;
+      z-index: 10;
+      border-radius: 10px;
+      padding: 5px 15px;
+      border-color: #202020;
+      background-color: #303030;
+      color: white;
+    }
 
-    <button
-      class="btn btn-overlay"
-      onclick="overlay = !overlay;this.style.backgroundColor = overlay ? '#40aa40' : '#303030';setOverlay();"
-    >
-      Overlay Grid
-    </button>
+    .btn-clear {
+      top: 2px;
+      right: 2px;
+    }
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha512-ozq8xQKq6urvuU6jNgkfqAmT7jKN2XumbrX1JiB3TnF7tI48DPI4Gy1GXKD/V3EExgAs1V+pRO7vwtS1LHg0Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script>
-      //Map Options
-      var mapMinZoom = 0;
-      var mapMaxZoom = 7;
-      var mapMaxResolution = 0.25;
-      var mapMinResolution = Math.pow(2, mapMaxZoom) * mapMaxResolution;
-      var mapCenterLat = -5525;
-      var mapCenterLng = 3755;
-      var gtaOffset = 0.66;
-      var debug = false;
-      var overlay = false;
-      var bottomLeft = [-8192, 0];
-      var topRight = [0, 8192];
-      var bounds = [bottomLeft, topRight];
+    .btn:active {
+      background-color: #404040;
+    }
 
-      L.Draw.Circle = L.Draw.SimpleShape.extend({
-        statics: {
-          TYPE: "circle",
+    .btn-import {
+      top: 2px;
+      right: 145px;
+
+    }
+
+    .leaflet-popup-content {
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: monospace;
+      color: white;
+      font-size: 12px;
+
+    }
+
+    .leaflet-popup-content-wrapper {
+      max-width: 600px;
+      z-index: 1000;
+      background: rgba(20, 20, 20, 0.95);
+      box-shadow: 0 0 10px #000;
+    }
+
+    .import-container {
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      z-index: 1000;
+      background: rgba(20, 20, 20, 0.95);
+      padding: 10px;
+      border-radius: 5px;
+      color: white;
+      box-shadow: 0 0 10px #000;
+    }
+
+    .import-container textarea {
+      background: #111;
+      color: #eee;
+      border: 1px solid #444;
+      padding: 5px;
+    }
+
+    .import-container button {
+      margin-top: 5px;
+      padding: 5px 10px;
+      background: #2b6cb0;
+      border: none;
+      color: white;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+
+    .btn:hover {
+      cursor: pointer;
+      background: #2c5282;
+
+    }
+
+    button.copy-btn {
+      font-size: 14px;
+      background: #2b6cb0;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map1"></div>
+  <button class="btn btn-import" onclick="toggleImportBox()">Import</button>
+
+  <div id="importBox" class="import-container" style="display: none;">
+    <label><strong>Paste Coordinates:</strong></label><br>
+    <textarea id="coordsInput" placeholder="vector2(x, y) or [x, y]"
+      style="width: 300px; height: 100px;"></textarea><br>
+    <button onclick="importCoords()">✅ Load Zone</button>
+  </div>
+
+  <button class="btn btn-clear" onclick="clearLayer();">
+    Clear All Shapes
+  </button>
+
+
+
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js" crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+  <script>
+    // Map Settings
+    var mapMinZoom = 1;
+    var mapMaxZoom = 7;
+    var mapMaxResolution = 0.25;
+    var mapMinResolution = Math.pow(2, mapMaxZoom) * mapMaxResolution;
+
+    // Adjust these based on your exported map/tiles and game-to-map relationship!
+    var imageWidth = 24576;
+    var imageHeight = 19456;
+
+    // Use the visual center of your map image as the center for RedM coords (0,0)
+
+    var mapCenterLat = -3320.5;
+    var mapCenterLng = 5206.5;
+    var RedMOffsetX = 0.693;
+    var RedMOffsetY = 0.9289;
+
+    var debug = false;
+    var overlay = false;
+
+
+    var bottomLeft = [-imageHeight, 0];
+    var topRight = [0, imageWidth];
+    var bounds = [bottomLeft, topRight];
+    var imageCenterLat = -imageHeight / 2;
+    var imageCenterLng = imageWidth / 2;
+    var maxBounds = L.latLngBounds(
+      L.latLng(-imageHeight, 0),
+      L.latLng(0, imageWidth)
+    );
+    // --- LEAFLET EXTENSIONS FOR DRAWING CIRCLES (as before, unchanged) ---
+    L.Draw.Circle = L.Draw.SimpleShape.extend({
+      statics: { TYPE: "circle", },
+      options: {
+        shapeOptions: {
+          stroke: true,
+          color: "#3388ff",
+          weight: 4,
+          opacity: 0.5,
+          fill: true,
+          fillColor: null,
+          fillOpacity: 0.2,
+          clickable: true,
         },
-
-        options: {
-          shapeOptions: {
-            stroke: true,
-            color: "#3388ff",
-            weight: 4,
-            opacity: 0.5,
-            fill: true,
-            fillColor: null, //same as color by default
-            fillOpacity: 0.2,
-            clickable: true,
-          },
-          showRadius: true,
-          metric: true, // Whether to use the metric measurement system or imperial
-          feet: true, // When not metric, use feet instead of yards for display
-          nautic: false, // When not metric, not feet use nautic mile for display
-        },
-
-        // @method initialize(): void
-        initialize: function (map, options) {
-          // Save the type so super can fire, need to do this as cannot do this.TYPE :(
-          this.type = L.Draw.Circle.TYPE;
-
-          this._initialLabelText =
-            L.drawLocal.draw.handlers.circle.tooltip.start;
-
-          L.Draw.SimpleShape.prototype.initialize.call(this, map, options);
-        },
-
-        _drawShape: function (latlng) {
-          // Calculate the distance based on the version
-          let outerPos = latlngToGTA(latlng);
-          let innerPos = latlngToGTA(this._startLatLng);
-          var distance = Math.hypot(
-            innerPos[0] - outerPos[0],
-            innerPos[1] - outerPos[1]
-          );
-
-          if (!this._shape) {
-            this._shape = new L.Circle(
-              this._startLatLng,
-              distance,
-              this.options.shapeOptions
-            );
-            this._map.addLayer(this._shape);
-          } else {
-            this._shape.setRadius(distance);
-          }
-        },
-
-        _fireCreatedEvent: function () {
-          var circle = new L.Circle(
-            this._startLatLng,
-            this._shape.getRadius(),
-            this.options.shapeOptions
-          );
-          L.Draw.SimpleShape.prototype._fireCreatedEvent.call(this, circle);
-        },
-
-        _onMouseMove: function (e) {
-          var latlng = e.latlng,
-            showRadius = this.options.showRadius,
-            useMetric = this.options.metric,
-            radius;
-
-          this._tooltip.updatePosition(latlng);
-          if (this._isDrawing) {
-            this._drawShape(latlng);
-
-            // Get the new radius (rounded to 1 dp)
-            radius = this._shape.getRadius().toFixed(1);
-
-            var subtext = "";
-            if (showRadius) {
-              subtext =
-                L.drawLocal.draw.handlers.circle.radius +
-                ": " +
-                L.GeometryUtil.readableDistance(
-                  radius,
-                  useMetric,
-                  this.options.feet,
-                  this.options.nautic
-                );
-            }
-            this._tooltip.updateContent({
-              text: this._endLabelText,
-              subtext: subtext,
-            });
-          }
-        },
-      });
-
-      L.Edit.CircleMarker = L.Edit.Circle.extend({
-
-        _resize: function (latlng) {
-          var moveLatLng = this._moveMarker.getLatLng();
-
-          // Calculate the distance based on the version
-          let outerPos = latlngToGTA(latlng);
-          let innerPos = latlngToGTA(this._startLatLng);
-          var distance = Math.hypot(
-            innerPos[0] - outerPos[0],
-            innerPos[1] - outerPos[1]
-          );
-
-          if (this._map.editTooltip) {
-            this._map._editTooltip.updateContent({
-              text:
-                L.drawLocal.edit.handlers.edit.tooltip.subtext +
-                "<br />" +
-                L.drawLocal.edit.handlers.edit.tooltip.text,
-              subtext:
-                L.drawLocal.draw.handlers.circle.radius +
-                ": " +
-                L.GeometryUtil.readableDistance(
-                  distance,
-                  true,
-                  this.options.feet,
-                  this.options.nautic
-                ),
-            });
-          }
-
+        showRadius: true,
+        metric: true,
+        feet: true,
+        nautic: false,
+      },
+      initialize: function (map, options) {
+        this.type = L.Draw.Circle.TYPE;
+        this._initialLabelText = L.drawLocal.draw.handlers.circle.tooltip.start;
+        L.Draw.SimpleShape.prototype.initialize.call(this, map, options);
+      },
+      _drawShape: function (latlng) {
+        let outerPos = latlngToRedM(latlng);
+        let innerPos = latlngToRedM(this._startLatLng);
+        var distance = Math.hypot(innerPos[0] - outerPos[0], innerPos[1] - outerPos[1]);
+        if (!this._shape) {
+          this._shape = new L.Circle(this._startLatLng, distance, this.options.shapeOptions);
+          this._map.addLayer(this._shape);
+        } else {
           this._shape.setRadius(distance);
+        }
+      },
+      _fireCreatedEvent: function () {
+        var circle = new L.Circle(this._startLatLng, this._shape.getRadius(), this.options.shapeOptions);
+        L.Draw.SimpleShape.prototype._fireCreatedEvent.call(this, circle);
+      },
+      _onMouseMove: function (e) {
+        var latlng = e.latlng, showRadius = this.options.showRadius, useMetric = this.options.metric, radius;
+        this._tooltip.updatePosition(latlng);
+        if (this._isDrawing) {
+          this._drawShape(latlng);
+          radius = this._shape.getRadius().toFixed(1);
+          var subtext = "";
+          if (showRadius) {
+            subtext = L.drawLocal.draw.handlers.circle.radius + ": " +
+              L.GeometryUtil.readableDistance(radius, useMetric, this.options.feet, this.options.nautic);
+          }
+          this._tooltip.updateContent({ text: this._endLabelText, subtext: subtext });
+        }
+      },
+    });
 
-          this._map.fire(L.Draw.Event.EDITRESIZE, { layer: this._shape });
-        },
-      });
+    L.Edit.CircleMarker = L.Edit.Circle.extend({
+      _resize: function (latlng) {
+        var moveLatLng = this._moveMarker.getLatLng();
+        let outerPos = latlngToRedM(latlng);
+        let innerPos = latlngToRedM(this._startLatLng);
+        var distance = Math.hypot(innerPos[0] - outerPos[0], innerPos[1] - outerPos[1]);
+        if (this._map.editTooltip) {
+          this._map._editTooltip.updateContent({
+            text: L.drawLocal.edit.handlers.edit.tooltip.subtext +
+              "<br />" + L.drawLocal.edit.handlers.edit.tooltip.text,
+            subtext: L.drawLocal.draw.handlers.circle.radius + ": " +
+              L.GeometryUtil.readableDistance(distance, true, this.options.feet, this.options.nautic),
+          });
+        }
+        this._shape.setRadius(distance);
+        this._map.fire(L.Draw.Event.EDITRESIZE, { layer: this._shape });
+      },
+    });
 
-      //Create a new (square) coordinate system
-      var crs = L.CRS.Simple;
+    // CRS
+    var crs = L.CRS.Simple;
+    crs.scale = function (zoom) {
+      return Math.pow(2, zoom) / mapMinResolution;
+    };
 
-      crs.scale = function (zoom) {
-        return Math.pow(2, zoom) / mapMinResolution;
-      };
-      /*
-      crs.zoom = function (scale) {
-        return Math.log(scale * mapMinResolution) / Math.LN2;
-      };*/
+    // TILE LAYER
+    var tileLayer = L.tileLayer('./tiles/{z}/{x}_{y}.jpg', {
+      tileSize: 256,
+      minZoom: mapMinZoom,
+      maxZoom: mapMaxZoom,
+      noWrap: true,
+      errorTileUrl: './tiles/empty.jpg' // Make a blank tile or small placeholder
+    });
 
-      //Create GTA map tiles
+    var map = new L.Map("map1", {
+      maxZoom: mapMaxZoom,
+      minZoom: mapMinZoom,
+      crs: crs,
+      center: [mapCenterLat, mapCenterLng],
+      zoom: 2,
+      layers: [tileLayer],
+      maxBounds: maxBounds * 1.2,               // prevent panning outside the map
+      maxBoundsViscosity: 1.0             // makes the bounds "hard"!
+    });
 
-      var layer = L.tileLayer("tiles/{z}/{x}/{y}.png", {
-        minZoom: mapMinZoom,
-        maxZoom: mapMaxZoom,
-        attribution:
-          'Rendered with <a href="https://www.maptiler.com/desktop/">MapTiler Desktop</a> by <a href="https://github.com/RussianRonin">RussianRonin</a> | Created by <a href="https://github.com/skyrossm">Skyrossm</a>',
-        noWrap: true,
-        tms: true,
-      });
 
-      //Create the map object
-
-      var map = new L.Map("map1", {
-        maxZoom: mapMaxZoom,
-        minZoom: mapMinZoom,
-        layers: [layer],
-        crs: crs,
-        center: [mapCenterLat, mapCenterLng],
-        zoom: 3,
-      });
-
-      //Shows GTA grid overlay on map
-      let bgimage = L.imageOverlay("https://i.imgur.com/MQr04nZ.jpg", bounds, {
-        opacity: 0,
-      }).addTo(map);
-      function setOverlay() {
-        let imagelee = document.querySelector(".leaflet-image-layer");
+    function setOverlay() {
+      let imagelee = document.querySelector(".leaflet-image-layer");
+      if (imagelee) {
         imagelee.style.opacity = overlay ? 0.5 : 0;
       }
+    }
 
-      //Create Leaflet.Draw toolbar/layer
+    // --- LEAFLET DRAW ---
+    L.Draw.Polyline.prototype._onTouch = L.Util.falseFn;
 
-      //Fix for broken Draw
-      L.Draw.Polyline.prototype._onTouch = L.Util.falseFn;
+    var editableLayers = L.featureGroup();
+    map.addLayer(editableLayers);
 
-      var editableLayers = L.featureGroup();
-      map.addLayer(editableLayers);
-      var drawControl = new L.Control.Draw({
-        draw: {
-          polyline: false,
-          circlemarker: false,
-        },
-        edit: {
-          featureGroup: editableLayers,
-        },
+    var drawControl = new L.Control.Draw({
+      draw: {
+        polyline: false,
+        circlemarker: false,
+      },
+      edit: {
+        featureGroup: editableLayers,
+      },
+    });
+    map.addControl(drawControl);
+
+    // --- REDM COORD CONVERSION ---
+
+
+
+    function latlngToRedM(latlng) {
+      // Use your map's true lat/lng, not image pixels!
+      const x = 2.01134 * latlng.lng + 0.00303 * latlng.lat - 7156.10;
+      const y = -0.00014 * latlng.lng + 2.01292 * latlng.lat + 4099.66;
+      return [x.toFixed(2), y.toFixed(2)];
+    }
+    /*
+    const zonePoints5 = [
+
+
+
+
+    ]
+
+    const zonePoints3 = [
+      [-772.74975585938, -679.51165771484],
+      [-783.62249755859, -689.58514404297],
+      [-791.46215820312, -700.51159667969],
+      [-804.8203125, -712.68786621094],
+      [-818.81536865234, -722.22521972656],
+      [-832.79864501953, -727.11633300781],
+      [-847.36370849609, -731.98052978516],
+      [-861.1298828125, -735.92999267578],
+      [-872.84307861328, -740.11517333984],
+      [-887.47540283203, -742.90808105469],
+      [-898.30718994141, -746.49664306641],
+      [-905.04742431641, -752.29046630859],
+      [-913.35711669922, -758.33807373047],
+      [-904.6748046875, -762.58374023438],
+      [-893.81719970703, -765.97979736328],
+      [-883.81506347656, -769.79370117188],
+      [-874.24462890625, -775.66668701172],
+      [-863.05639648438, -781.76794433594],
+      [-849.65411376953, -787.02801513672],
+      [-837.50524902344, -791.22192382812],
+      [-825.01342773438, -796.93212890625],
+      [-814.39776611328, -801.85235595703],
+      [-802.94873046875, -806.22888183594],
+      [-791.49914550781, -808.31713867188],
+      [-782.19195556641, -809.31091308594],
+      [-774.15753173828, -808.14349365234],
+      [-766.35583496094, -805.56170654297],
+      [-759.93469238281, -800.96307373047],
+      [-755.72595214844, -792.9609375],
+      [-750.36187744141, -784.33020019531],
+      [-745.55792236328, -775.1962890625],
+      [-740.06292724609, -766.81298828125],
+      [-733.42395019531, -756.52172851562],
+      [-729.54357910156, -748.68627929688],
+      [-727.83264160156, -740.23071289062],
+      [-727.95355224609, -732.92590332031],
+      [-731.23895263672, -723.84063720703],
+      [-735.50756835938, -714.29620361328],
+      [-740.64971923828, -707.31988525391]
+    ];
+    const zonePoints2 = [
+      [-132.81294250488, 558.11206054688],
+      [-130.9172668457, 643.15679931641],
+      [-153.47071838379, 704.64611816406],
+      [-136.00305175781, 888.42523193359],
+      [-178.54002380371, 1014.440246582],
+      [-315.77560424805, 1040.1882324219],
+      [-345.16708374023, 997.83056640625],
+      [-435.06356811523, 971.85009765625],
+      [-449.13137817383, 920.40228271484],
+      [-465.15539550781, 885.505859375],
+      [-471.21536254883, 854.05657958984],
+      [-452.939453125, 797.12976074219],
+      [-468.12814331055, 734.68103027344],
+      [-512.73321533203, 682.68524169922],
+      [-500.25140380859, 590.12487792969],
+      [-405.25393676758, 556.84124755859],
+      [-336.07440185547, 560.86572265625],
+      [-254.04981994629, 506.95272827148]
+    ];
+
+    const zonePoints = [
+      [-1058.478515625, -1194.3204345703],
+      [-1077.4598388672, -1427.1328125],
+      [-1021.9083862305, -1499.8706054688],
+      [-952.48687744141, -1534.845703125],
+      [-829.40679931641, -1548.5775146484],
+      [-735.61169433594, -1523.0760498047],
+      [-720.66906738281, -1468.6547851562],
+      [-723.36022949219, -1451.5327148438],
+      [-724.32531738281, -1432.1042480469],
+      [-719.08258056641, -1417.8439941406],
+      [-711.12854003906, -1407.0209960938],
+      [-713.93139648438, -1396.32421875],
+      [-733.55505371094, -1381.9537353516],
+      [-734.18304443359, -1367.9056396484],
+      [-720.33099365234, -1365.912109375],
+      [-710.87005615234, -1361.9089355469],
+      [-711.88311767578, -1341.3735351562],
+      [-736.36962890625, -1329.1575927734],
+      [-731.85357666016, -1318.6955566406],
+      [-734.84100341797, -1301.2556152344],
+      [-721.83819580078, -1293.3139648438],
+      [-721.86450195312, -1195.6314697266],
+      [-754.16082763672, -1156.5971679688],
+      [-846.82598876953, -1127.369140625]
+    ];
+    const zonePoints4 = [
+      [2935.4494628906, 616.04412841797],
+      [2939.3386230469, 629.77972412109],
+      [2943.7543945312, 641.82104492188],
+      [2950.1721191406, 659.09112548828],
+      [2954.12890625, 672.02807617188],
+      [2955.55078125, 685.90185546875],
+      [2954.181640625, 695.65008544922],
+      [2950.5053710938, 705.95660400391],
+      [2946.2209472656, 718.32531738281],
+      [2946.2260742188, 728.22894287109],
+      [2948.2912597656, 737.74078369141],
+      [2952.8505859375, 748.73583984375],
+      [2955.5437011719, 761.90209960938],
+      [2956.994140625, 772.07751464844],
+      [2955.2531738281, 778.583984375],
+      [2948.3203125, 784.73028564453],
+      [2939.4340820312, 792.13732910156],
+      [2925.6770019531, 796.88122558594],
+      [2911.2119140625, 795.14172363281],
+      [2893.7241210938, 792.56018066406],
+      [2881.9296875, 790.89990234375],
+      [2872.2060546875, 777.23083496094],
+      [2861.9982910156, 762.92248535156],
+      [2852.1206054688, 748.11541748047],
+      [2847.6398925781, 740.99737548828],
+      [2846.4577636719, 735.40563964844],
+      [2845.2180175781, 727.90997314453],
+      [2845.0673828125, 715.98870849609],
+      [2846.5249023438, 704.26086425781],
+      [2848.373046875, 689.39349365234],
+      [2852.7458496094, 683.73065185547],
+      [2862.8295898438, 672.07830810547],
+      [2872.0495605469, 661.52111816406],
+      [2880.4235839844, 653.44866943359],
+      [2888.5239257812, 646.75897216797],
+      [2900.7543945312, 639.00897216797],
+      [2909.4084472656, 634.64508056641],
+      [2918.7973632812, 630.12829589844],
+      [2923.4287109375, 627.65167236328]
+    ];
+    */
+    function RedMToLatLng(x, y) {
+      // Reverse affine transform (from in-game X/Y to site lat/lng)
+      // From solved coefficients:
+      // X = 2.01188 * lng - 0.000068 * lat - 7167.61
+      // Y = 0.000155 * lng + 2.01125 * lat + 4093.43
+
+      // Invert the 2x2 matrix of (lng, lat) to (X, Y):
+      // [a b] [lng] + [c] = [X]
+      // [d e] [lat]   [f]   [Y]
+      // So: [lng, lat]^T = inv(A) * ([X, Y] - [c, f])
+
+      const a = 2.01188, b = -0.000068, c = -7164.61;
+      const d = 0.000155, e = 2.01125, f = 4092.43;
+
+      // Matrix inversion for 2x2:
+      const det = a * e - b * d;
+      const a_inv = e / det, b_inv = -b / det;
+      const d_inv = -d / det, e_inv = a / det;
+
+      const X = parseFloat(x), Y = parseFloat(y);
+
+      // Shift for translation
+      const Xc = X - c;
+      const Yc = Y - f;
+
+      // Solve:
+      const lng = a_inv * Xc + b_inv * Yc;
+      const lat = d_inv * Xc + e_inv * Yc;
+      return [lat, lng];
+    }
+
+    // Plot markers
+
+    // const polygonLatLngs = zonePoints.map(([x, y]) => RedMToLatLng(x, y));
+    // const zonePolygon = L.polygon(polygonLatLngs, { color: "#ff6600", weight: 4 }).addTo(map);
+    // const polygonLatLngs2 = zonePoints2.map(([x, y]) => RedMToLatLng(x, y));
+    // const zonePolygon2 = L.polygon(polygonLatLngs2, { color: "#ff6600", weight: 4 }).addTo(map);
+
+    // const polygonLatLngs3 = zonePoints3.map(([x, y]) => RedMToLatLng(x, y));
+    // const zonePolygon3 = L.polygon(polygonLatLngs3, { color: "#ff6600", weight: 4 }).addTo(map);
+
+    // const polygonLatLngs4 = zonePoints4.map(([x, y]) => RedMToLatLng(x, y));
+    // const zonePolygon4 = L.polygon(polygonLatLngs4, { color: "#ff6600", weight: 4 }).addTo(map);
+
+    // const polygonLatLngs5 = zonePoints5.map(([x, y]) => RedMToLatLng(x, y));
+    // const zonePolygon5 = L.polygon(polygonLatLngs5, { color: "#ff6600", weight: 4 }).addTo(map);
+
+    // --- CLEAR DRAW LAYER ---
+    function clearLayer() {
+      editableLayers.getLayers().forEach((layer) => {
+        editableLayers.removeLayer(layer);
       });
-      map.addControl(drawControl);
+    }
+    function toggleImportBox() {
+      const box = document.getElementById("importBox");
+      const textarea = document.getElementById("coordsInput");
 
-      //Convert latlng on the map to GTA coords
-      function latlngToGTA(latlng) {
-        var x = (latlng.lng - mapCenterLng) / gtaOffset;
-        var y = (latlng.lat - mapCenterLat) / gtaOffset;
-        return [x.toFixed(2), y.toFixed(2)];
+      const shouldShow = (box.style.display === "none");
+      box.style.display = shouldShow ? "block" : "none";
+
+      if (shouldShow) {
+        setTimeout(() => {
+          textarea.scrollTop = textarea.scrollHeight;
+        }, 100); // slight delay to ensure rendering
       }
+    }
+    // --- POLYZONE PARSE FOR OUTPUT ---
+    function parseShape(name, points) {
+      var printout = "--Name: " + name + " | " + new Date().toDateString();
+      printout += "\nPolyZone:Create({\n";
+      points.forEach((point, index) => {
+        var last = index < points.length - 1 ? "," : "";
+        printout += " vector2(" + point[0] + ", " + point[1] + ")" + last + "\n";
+      });
+      var debugText = debug ? "\n debugGrid=true," : "";
+      printout += '}, {\n name="' + name + '",' + debugText + "\n --minZ=0,\n --maxZ=800\n})\n\n";
+      return printout;
+    }
+    function parseCircle(name, center, radius) {
+      var printout = "--Name: " + name + " | " + new Date().toDateString();
+      printout += "\nCircleZone:Create(vector2(" + center[0] + ", " + center[1] + "), " + radius + ", ";
+      var debugText = debug ? "\n debugPoly=true," : "";
+      printout += '{\n name="' + name + '",' + debugText + "\n})\n\n";
+      return printout;
+    }
 
-      //Convert GTA coords to latlng on the map
-      function gtaToLatLng(x, y) {
-        var lng = x * gtaOffset + mapCenterLng;
-        var lat = y * gtaOffset + mapCenterLat;
-        return L.latLng(lat, lng);
-      }
+    // --- ON SHAPE CREATED ---
+    map.on(L.Draw.Event.CREATED, (e) => {
+      var type = e.layerType,
+        layer = e.layer;
 
-      //Remove all shapes from Draw
-      function clearLayer() {
-        editableLayers.getLayers().forEach((layer) => {
-          editableLayers.removeLayer(layer);
+      if (type === "marker") {
+        var position = latlngToRedM(layer.getLatLng());
+        layer.bindPopup(
+          "RedM Position: " + position + ", latlng: " + layer.getLatLng()
+        );
+      } else if (type === "circle") {
+        var position = latlngToRedM(layer.getLatLng());
+        let content = parseCircle(
+          prompt("Enter circlezone name: "),
+          latlngToRedM(layer.getLatLng()),
+          (layer.getRadius() * 1.5).toFixed(2)
+        );
+        layer.bindPopup(
+          `<div style="position:relative;">
+     <button onclick="copyToClipboard(this)" style="position:absolute; top:5px; right:5px;">📋</button>
+     <code style="white-space:pre-wrap; display:block; padding-right:30px;">${content}</code>
+   </div>`,
+          { minWidth: 500 }
+        );
+      } else {
+        var name = prompt("Enter polyzone name:");
+        var RedMpoints = [];
+        layer._latlngs[0].forEach((latlng) => {
+          RedMpoints.push(latlngToRedM(latlng));
         });
+        var content = parseShape(name, RedMpoints);
+        console.log(content);
+        layer.bindPopup(
+          `<div style="position:relative;">
+     <button onclick="copyToClipboard(this)" style="position:absolute; top:5px; right:5px;">📋</button>
+     <code style="white-space:pre-wrap; display:block; padding-right:30px;">${content}</code>
+   </div>`,
+          { minWidth: 500 }
+        );
       }
+      editableLayers.addLayer(layer);
+    });
 
-      //https://github.com/mkafrin/PolyZone/blob/master/server.lua
-      function parseShape(name, points) {
-        var printout = "--Name: " + name + " | " + new Date().toDateString();
-        printout += "\nPolyZone:Create({\n";
-        points.forEach((point, index) => {
-          var last = index < points.length - 1 ? "," : "";
-          printout +=
-            " vector2(" + point[0] + ", " + point[1] + ")" + last + "\n";
-        });
-        var debugText = debug ? "\n debugGrid=true," : "";
-        printout +=
-          '}, {\n name="' +
-          name +
-          '",' +
-          debugText +
-          "\n --minZ=0,\n --maxZ=800\n})\n\n";
-        return printout;
-      }
-
-      //https://github.com/mkafrin/PolyZone/blob/master/server.lua
-      function parseCircle(name, center, radius) {
-        var printout = "--Name: " + name + " | " + new Date().toDateString();
-        printout +=
-          "\nCircleZone:Create(vector2(" +
-          center[0] +
-          ", " +
-          center[1] +
-          "), " +
-          radius +
-          ", ";
-        var debugText = debug ? "\n debugPoly=true," : "";
-        printout += '{\n name="' + name + '",' + debugText + "\n})\n\n";
-        return printout;
-      }
-
-      //On shape created
-      map.on(L.Draw.Event.CREATED, (e) => {
-        var type = e.layerType,
-          layer = e.layer;
-
-        //If it's a marker just show the GTA position
-        if (type === "marker") {
-          var position = latlngToGTA(layer.getLatLng());
+    map.on(L.Draw.Event.EDITED, (e) => {
+      var layers = e.layers;
+      layers.eachLayer(function (layer) {
+        if (layer instanceof L.Marker) {
+          var position = latlngToRedM(layer.getLatLng());
           layer.bindPopup(
-            "GTA Position: " + position + ", latlng: " + layer.getLatLng()
+            "RedM Position: " + position + ", latlng: " + layer.getLatLng()
           );
-        } else if (type === "circle") {
-          var position = latlngToGTA(layer.getLatLng());
-
+        } else if (layer instanceof L.Circle) {
+          var name = layer.getPopup().getContent().split(" |")[0].slice(44);
+          var position = latlngToRedM(layer.getLatLng());
           let content = parseCircle(
-            prompt("Enter circlezone name: "),
-            latlngToGTA(layer.getLatLng()),
+            name,
+            latlngToRedM(layer.getLatLng()),
             (layer.getRadius() * 1.5).toFixed(2)
           );
           layer.bindPopup(
@@ -364,72 +588,88 @@
             { minWidth: 500 }
           );
         } else {
-          //Get the polyzone name
-          var name = prompt("Enter polyzone name:");
-          //Show polyzone code on popup
-          var gtapoints = [];
+          var name = layer.getPopup().getContent().split(" |")[0].slice(44);
+          var RedMpoints = [];
           layer._latlngs[0].forEach((latlng) => {
-            gtapoints.push(latlngToGTA(latlng));
+            RedMpoints.push(latlngToRedM(latlng));
           });
-
-          var content = parseShape(name, gtapoints);
-          //Show in console as well just in case
-          console.log(content);
-
-          //Bind the popup
+          var content = parseShape(name, RedMpoints);
           layer.bindPopup(
             "<code style='white-space:pre-wrap;'>" + content + "</code>",
             { minWidth: 500 }
           );
         }
-
-        //Add shape to map
-        editableLayers.addLayer(layer);
       });
+    });
 
-      map.on(L.Draw.Event.EDITED, (e) => {
-        var layers = e.layers;
+    map.on('click', function (e) {
+      console.log("LatLng: ", e.latlng);
+      console.log("RedM Coords: ", latlngToRedM(e.latlng));
+    });
 
-        layers.eachLayer(function (layer) {
-          if (layer instanceof L.Marker) {
-            var position = latlngToGTA(layer.getLatLng());
-            layer.bindPopup(
-              "GTA Position: " + position + ", latlng: " + layer.getLatLng()
-            );
-          } else if (layer instanceof L.Circle) {
-            var name = layer.getPopup().getContent().split(" |")[0].slice(44);
+    function importCoords() {
+      const input = document.getElementById('coordsInput').value.trim();
+      if (!input) return alert("Please paste coordinates!");
 
-            var position = latlngToGTA(layer.getLatLng());
-            let content = parseCircle(
-              name,
-              latlngToGTA(layer.getLatLng()),
-              (layer.getRadius() * 1.5).toFixed(2)
-            );
-            layer.bindPopup(
-              "<code style='white-space:pre-wrap;'>" + content + "</code>",
-              { minWidth: 500 }
-            );
-          } else {
-            //Get the polyzone name
-            //extracts from the previous popup, could use some love
-            var name = layer.getPopup().getContent().split(" |")[0].slice(44);
-            //Show polyzone code on popup
-            var gtapoints = [];
-            layer._latlngs[0].forEach((latlng) => {
-              gtapoints.push(latlngToGTA(latlng));
-            });
-            var content = parseShape(name, gtapoints);
-            //Bind the popup
-            layer.bindPopup(
-              "<code style='white-space:pre-wrap;'>" + content + "</code>",
-              { minWidth: 500 }
-            );
-          }
-        });
-      });
+      let coords = [];
 
-      //Center the map
-      //map.setView(xy(0, 0), 3);
-    </script>
-  </body>
+      // Match vector2 or bracket style
+      const regex = /vector2\(\s*([-.\d]+)\s*,\s*([-.\d]+)\s*\)|\[\s*([-.\d]+)\s*,\s*([-.\d]+)\s*\]/g;
+      let match;
+      while ((match = regex.exec(input)) !== null) {
+        const x = parseFloat(match[1] || match[3]);
+        const y = parseFloat(match[2] || match[4]);
+        if (!isNaN(x) && !isNaN(y)) {
+          coords.push([x, y]);
+        }
+      }
+
+      if (coords.length < 3) return alert("Need at least 3 valid coordinates to form a polygon.");
+
+      // Convert to LatLng and draw polygon
+      const latlngs = coords.map(([x, y]) => RedMToLatLng(x, y));
+      const layer = L.polygon([latlngs], { color: "#00ccff", weight: 3 });
+
+      const name = prompt("Name for imported zone?", "ImportedZone");
+      const content = parseShape(name, coords);
+      layer.bindPopup(
+        `<div style="position:relative;">
+     <button onclick="copyToClipboard(this)" style="position:absolute; top:5px; right:5px;">📋</button>
+     <code style="white-space:pre-wrap; display:block; padding-right:30px;">${content}</code>
+   </div>`,
+        { minWidth: 500 }
+      );
+      editableLayers.addLayer(layer);
+    }
+    function copyToClipboard(button) {
+      const code = button.nextElementSibling.innerText;
+
+      const textarea = document.createElement("textarea");
+      textarea.value = code;
+      textarea.style.position = "fixed";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+
+      try {
+        const successful = document.execCommand("copy");
+        if (successful) {
+          button.innerText = "✅";
+        } else {
+          throw new Error("Copy failed");
+        }
+      } catch (err) {
+        console.error("Fallback clipboard copy failed:", err);
+        button.innerText = "❌";
+      }
+
+      document.body.removeChild(textarea);
+
+      setTimeout(() => {
+        button.innerText = "📋";
+      }, 1000);
+    }
+  </script>
+</body>
+
 </html>
