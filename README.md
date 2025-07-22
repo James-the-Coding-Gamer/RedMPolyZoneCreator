@@ -39,8 +39,4 @@ This is a fork of [skyrossm/PolyZoneCreator](https://github.com/skyrossm/PolyZon
 
 This version is maintained for **RedM community use** by [your name or GitHub username here].
 
----
 
-### 📂 Original License
-
-This project inherits the or
